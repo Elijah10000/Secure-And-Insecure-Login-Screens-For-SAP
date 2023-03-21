@@ -1,0 +1,24 @@
+{
+  "name": "login-screen-and-static-website-code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Elijah10000/secure-and-insecure-login-screens-for-sap.git"
+  },
+  "author": "Elijah L. McNamara",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Elijah10000/secure-and-insecure-login-screens-for-sap/issues"
+  },
+  "homepage": "https://github.com/Elijah10000/secure-and-insecure-login-screens-for-sap#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3"
+  }
+}
