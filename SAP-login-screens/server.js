@@ -1,69 +1,216 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
-const bcryptjs = require('bcryptjs');
+const bcrypt = require('bcryptjs');
+const dotenv = require('dotenv');
+const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const saltRounds = 10;
+const { Pool } = require('pg');
+
+
+dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+});
+
+app.use((req, res, next) => {
+  res.setHeader("Content-Security-Policy", "script-src 'self' 'unsafe-inline'");
+  return next();
+});
+
+app.use(helmet());
+app.use(limiter);
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(bodyParser.urlencoded({
-    extended: true
+  extended: true
 }));
+
 app.use(session({
-    secret: 'mysecretkey',
-    resave: false,
-    saveUninitialized: false
+  secret: 'my-very-strong-secret-key-that-nobody-can-guess',
+  resave: false,
+  saveUninitialized: false
 }));
 
-app.use(express.static('public'));
-
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
-    res.send('Welcome to my login page!');
+  res.send('Welcome to my login page!');
 });
 
 app.post('/login', async (req, res) => {
-    const {
-        email,
-        password
-    } = req.body;
-
-    // Validate input
-    if (!email || !password) {
-        return res.status(400).send('Email and password are required');
+    const { username, password } = req.body;
+  
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+  
+      if (result.rows.length === 0) {
+        return res.status(401).send('Invalid username or password');
+      }
+  
+      const user = result.rows[0];
+  
+      const passwordMatch = await bcrypt.compare(password, user.password);
+  
+      if (!passwordMatch) {
+        return res.status(401).send('Invalid username or password');
+      }
+  
+      req.session.user = user;
+      res.redirect('/dashboard');
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Internal server error');
     }
+  });
 
-    // Check if user exists in database
-    const user = await User.findOne({
-        email
-    });
-    if (!user) {
-        return res.status(401).send('Invalid email or password');
+  app.get('/signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+  });
+  
+  app.post('/signup', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    const confirmPassword = req.body['confirm-password'];
+  
+    if (password !== confirmPassword) {
+      res.send('Passwords do not match');
+      return;
     }
-
-    // Compare password with hash stored in database
-    const passwordMatch = await bcryptjs.compare(password, user.password);
-    if (!passwordMatch) {
-        return res.status(401).send('Invalid email or password');
+  
+    try {
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hashedPassword]);
+      res.redirect('/success.html');
+    } catch (error) {
+      console.error(error);
+      res.sendStatus(500);
     }
-
-    // Set session cookie and redirect to home page
-    req.session.user = user;
-    res.redirect('/');
-});
-
-app.get('/dashboard', (req, res) => {
-    // Check if user is authenticated
+  });
+  
+  app.get('/dashboard', (req, res) => {
     if (!req.session.user) {
-      return res.redirect('/login');
+      return res.redirect('/');
     }
+  
+    res.send(`Welcome ${req.session.user.username}!`);
+  });
+  
+  app.post('/login/authenticate', async (req, res) => {
+    const { username, password } = req.body;
+  
+    try {
+      const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+  
+      if (result.rows.length === 0) {
+        return res.status(401).send('Invalid username or password');
+      }
+  
+      const user = result.rows[0];
+  
+      const passwordMatch = await bcrypt.compare(password, user.password);
+  
+      if (!passwordMatch) {
+        return res.status(401).send('Invalid username or password');
+      }
+  
+      res.status(200).send('success');
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Internal server error');
+    }
+  });
 
-    // User is authenticated, render the dashboard page
-  res.render('dashboard', { user: req.session.user });
-});
-
-
+  app.get('/dashboard', (req, res) => {
+    const user = req.session.user;
+  
+    if (!user) {
+      return res.status(401).send('You need to log in to see this page');
+    }
+  
+    res.render('dashboard', {
+      user
+    });
+  });
+  
+  app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+  });
+  
 app.listen(port, () => {
-    console.log(`Server is listening on port ${3000}.`);
+    console.log(`Server is listening on port ${port}.`);
 });
+
+// const app = express();
+// const pool = new Pool({
+//     user: 'postgres',
+//     host: 'localhost',
+//     database: 'postgres',
+//     password: 'password1',
+//     port: 5432
+// });
+
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
+// app.use(express.static('public'));
+
+// app.post('/login', async (req, res) => {
+//     const { username, password } = req.body;
+//     const query = 'SELECT * FROM users WHERE username = $1';
+//     const values = [username];
+
+//     try {
+//         const result = await pool.query(query, values);
+
+//         if (result.rows.length === 0) {
+//             res.status(401).send('Invalid username or password');
+//         } else {
+//             const match = await bcrypt.compare(password, result.rows[0].password);
+
+//             if (match) {
+//                 res.redirect('/success.html');
+//             } else {
+//                 res.status(401).send('Invalid username or password');
+//             }
+//         }
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).send('Internal server error');
+//     }
+// });
+
+// app.post('/signup', async (req, res) => {
+//     const { username, password } = req.body;
+//     const query = 'INSERT INTO users (username, password) VALUES ($1, $2)';
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const values = [username, hashedPassword];
+
+//     try {
+//         await pool.query(query, values);
+//         res.redirect('/success.html');
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).send('Internal server error');
+//     }
+// });
+
+// app.listen(3000, () => {
+//     console.log('Server started on port 3000');
+// });

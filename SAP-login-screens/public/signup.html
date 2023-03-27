@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Signup Page</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <form action="/signup" method="POST" name="signupForm">
+		<label for="username">Username:</label>
+		<input type="text" id="username" name="username"><br>
+
+		<label for="password">Password:</label>
+		<input type="password" id="password" name="password"><br>
+
+		<label for="confirm-password">Confirm Password:</label>
+		<input type="password" id="confirm-password" name="confirm-password"><br>
+
+		<input type="submit" value="Signup">
+	</form>
+	<p>Already have an account? <a href="/">Login</a></p>
+    <script type="module" src="signup.js"></script>
+</body>
+</html>
