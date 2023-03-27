@@ -77,31 +77,57 @@ function redirectToSuccess() {
   window.location.href = "success.html";
 }
 
-document.querySelector('form[name="login-form"]').addEventListener("submit", function(event) {
-  event.preventDefault();
-  var username = document.forms["loginForm"]["username"].value;
-  var password = document.forms["loginForm"]["password"].value;
+const form = document.querySelector('#login-form');
 
-  // send login credentials to server for validation
-  fetch('/login/authenticate', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username, password })
-  })
-  .then(response => {
-    if (response.ok) {
-      redirectToSuccess();
-    } else {
-      alert("Invalid username or password");
-    }
-  })
-  .catch(error => {
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const username = form.elements.username.value;
+  const password = form.elements.password.value;
+
+  try {
+    const response = await fetch('/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await response.json();
+
+    console.log(data); // Do something with response data
+  } catch (error) {
     console.error(error);
-    alert("Failed to login. Please try again later.");
-  });
+  }
 });
+
+
+// document.querySelector('form[name="login-form"]').addEventListener("submit", function(event) {
+//   event.preventDefault();
+//   var username = document.forms["loginForm"]["username"].value;
+//   var password = document.forms["loginForm"]["password"].value;
+
+//   // send login credentials to server for validation
+//   fetch('/login/authenticate', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json'
+//     },
+//     body: JSON.stringify({ username, password })
+//   })
+//   .then(response => {
+//     if (response.ok) {
+//       redirectToSuccess();
+//     } else {
+//       alert("Invalid username or password");
+//     }
+//   })
+//   .catch(error => {
+//     console.error(error);
+//     alert("Failed to login. Please try again later.");
+//   });
+// });
 
 function validateForm() {
   var username = document.forms["myForm"]["username"].value;

@@ -6,7 +6,7 @@
 	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <form action="/signup" method="POST" name="signupForm">
+	<form method="POST" name="signup-form" id="signup-form" action="/signup">
 		<label for="username">Username:</label>
 		<input type="text" id="username" name="username"><br>
 
@@ -17,8 +17,9 @@
 		<input type="password" id="confirm-password" name="confirm-password"><br>
 
 		<input type="submit" value="Signup">
+			<p>Already have an account? <a href="/">Login</a></p>
+
 	</form>
-	<p>Already have an account? <a href="/">Login</a></p>
     <script type="module" src="signup.js"></script>
 </body>
 </html>
