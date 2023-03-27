@@ -7,7 +7,6 @@ query('SELECT * FROM users')
   .then(result => console.log(result))
   .catch(error => console.error(error));
 
-
 function redirectToSuccess() {
   window.location.href = "success.html";
 }

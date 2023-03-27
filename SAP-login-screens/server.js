@@ -184,6 +184,10 @@ app.get('/test', (req, res) => {
 // app.use(bodyParser.json());
 // app.use(express.static('public'));
 
+app.get('/success', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'success.html'));
+});
+
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -205,7 +209,7 @@ app.post('/login', async (req, res) => {
             const match = await bcrypt.compare(password, result.rows[0].password);
 
             if (match) {
-                res.redirect('/success.html');
+                res.redirect('/success');
             } else {
                 res.status(401).send('Invalid username or password');
             }
