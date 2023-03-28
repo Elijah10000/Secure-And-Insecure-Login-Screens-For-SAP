@@ -1,11 +1,6 @@
-// console.log("signup.js file loaded.");
+console.log("signup.js file loaded.");
 import * as db from "./db.js";
-import { createUser } from './db.js';
 import { query } from './db.js';
-
-query('SELECT * FROM users')
-  .then(result => console.log(result))
-  .catch(error => console.error(error));
 
 function redirectToSuccess() {
   window.location.href = "success.html";
@@ -30,7 +25,14 @@ form.addEventListener('submit', async (event) => {
 
     const data = await response.json();
 
-    console.log(data); // Do something with response data
+    if (response.ok) {
+      // If the signup was successful, display a success message
+      const successMessage = document.createElement('p');
+      successMessage.textContent = 'Signup successful!';
+      form.insertAdjacentElement('beforeend', successMessage);
+    } else {
+      console.error(data); // Display error message to console
+    }
   } catch (error) {
     console.error(error);
   }

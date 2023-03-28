@@ -1,27 +1,34 @@
-// import { Pool } from 'pg';
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: 'your_username',
-  host: 'your_host',
-  database: 'your_database',
-  password: 'your_password',
+  user: 'postgres',
+  password: 'password1', // Make sure this is a string
+  host: 'localhost',
+  database: 'postgres',
   port: 5432,
 });
 
-module.exports = {
-    query: (text, params) => pool.query(text, params),
+// create a new user
+export async function createUser(username, password) {
+  // Check if user already exists
+  const userExistsQuery = {
+    text: 'SELECT * FROM users WHERE username = $1',
+    values: [username],
   };
+  const userExists = await pool.query(userExistsQuery);
 
+  if (userExists.rowCount > 0) {
+    throw new Error('User already exists');
+  }
 
-  export const query = {
+  // Insert new user
+  const createUserQuery = {
     text: 'INSERT INTO users (username, password) VALUES ($1, $2)',
     values: [username, password],
   };
-// create a new user
-export async function createUser(username, password) {
+  
   try {
-    const res = await pool.query(query);
+    const res = await pool.query(createUserQuery);
     console.log(`User ${username} created`);
   } catch (err) {
     console.error(err.stack);
@@ -42,6 +49,10 @@ export async function getUserByUsername(username) {
     console.error(err.stack);
   }
 }
+
+module.exports = {
+  query: (text, params) => pool.query(text, params),
+};
 
 export default {
   createUser,
