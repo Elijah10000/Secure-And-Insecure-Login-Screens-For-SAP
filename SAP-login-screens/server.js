@@ -1,3 +1,4 @@
+// Importing necessary modules
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -8,12 +9,16 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 
-
+// Loads environment variables from .env file
 dotenv.config();
 
+// Creating an express application
 const app = express();
+
+// Setting the port number to either the value in the environment variable or 3000
 const port = process.env.PORT || 3000;
 
+// Creating a new connection pool for PostgreSQL database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   user: 'postgres',
@@ -23,21 +28,28 @@ const pool = new Pool({
   port: 5432,
 });
 
+// Connecting to the PostgreSQL database
 pool.connect();
 
+// Creating a rate limiter middleware to limit requests from the same IP address
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
 });
 
+// Adding a security header to the response object
 app.use((req, res, next) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' 'unsafe-inline'");
   return next();
 });
 
+// Adding a set of security middleware to the express app
 app.use(helmet());
+
+// Adding a rate limiter middleware to the express app
 app.use(limiter);
 
+// Setting the view engine to EJS and the views directory to ./views
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -55,14 +67,17 @@ app.use(session({
   saveUninitialized: false
 }));
 
+// Handling GET request to the /success endpoint
 app.get('/success', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
 
+// Handling GET request to the /login endpoint
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Handling POST request to the /login endpoint
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -75,7 +90,6 @@ app.post('/login', async (req, res) => {
 
     try {
         const result = await pool.query(query, values);
-
         if (result.rows.length === 0) {
             res.status(401).send('Invalid username or password');
         } else {
@@ -94,18 +108,24 @@ app.post('/login', async (req, res) => {
     }
 });
 
-
+// Handling GET request to the /signup endpoint
 app.get('/signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
 
+// Handling POST request to the /signup endpoint
 app.post('/signup', async (req, res) => {
     const { username, password } = req.body;
 
-    if (!password) {
-        res.status(400).send('Missing password');
+    if (!username || !password) {
+        res.status(400).send('Username and password are required');
         return;
     }
+
+    if (password.length < 6) {
+        res.status(400).send('Password must be at least 6 characters');
+        return;
+      }
 
     // Check if user already exists
     const userExistsQuery = {

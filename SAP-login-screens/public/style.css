@@ -1,38 +1,77 @@
-form {
-    margin: 0 auto;
-    width: 400px;
-    border: 2px solid #ccc;
-    padding: 20px;
-  }
-  
-  label {
-    display: inline-block;
-    width: 100px;
-    text-align: left;
-  }
-  
-  input[type="text"],
-  input[type="password"] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    box-sizing: border-box;
-    border: 2px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  input[type="submit"] {
-    background-color: #4CAF50;
-    color: white;
-    padding: 14px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 50%;
-    margin-left: 25% ;
-  }
-  
-  input[type="submit"]:hover {
-    background-color: #45a049;
-  }
-  
+/* Style for body and form */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+}
+
+h1 {
+  text-align: center;
+  color: #4CAF50;
+  font-size: 30px;
+  margin-top: 300px; 
+}
+
+.auth-form {
+  margin: 50px auto;
+  width: 350px;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Style for input fields */
+label {
+  display: block;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 95%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  border: 1px solid #ccc;
+  color: #333;
+}
+
+input[type="submit"] {
+  background-color: #4CAF50;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto;
+}
+
+input[type="submit"]:hover {
+  background-color: #3e8e41;
+}
+
+/* Style for the login link */
+p {
+  margin-top: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+a {
+  color: #4CAF50;
+  text-decoration: none;
+  border-bottom: 1px solid #4CAF50;
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: #3e8e41;
+  border-bottom: 1px solid #3e8e41;
+}
