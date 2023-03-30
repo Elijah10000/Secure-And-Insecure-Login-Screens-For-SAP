@@ -80,33 +80,41 @@ app.get('/login', (req, res) => {
 // Handling POST request to the /login endpoint
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) {
-        res.status(400).send('Username and password are required');
-        return;
+  
+    // Sanitize user input to prevent SQL injection attacks
+    const sanitizedUsername = username.replace(/['";]/g, '');
+    const sanitizedPassword = password.replace(/['";]/g, '');
+  
+    if (!sanitizedUsername || !sanitizedPassword) {
+      res.status(400).send('Username and password are required');
+      return;
     }
-
-    const query = 'SELECT * FROM users WHERE username = $1';
-    const values = [username];
-
+  
+    const query = {
+      text: 'SELECT * FROM users WHERE username = $1',
+      values: [sanitizedUsername],
+    };
+  
     try {
-        const result = await pool.query(query, values);
-        if (result.rows.length === 0) {
-            res.status(401).send('Invalid username or password');
+      const result = await pool.query(query);
+  
+      if (result.rows.length === 0) {
+        res.status(401).send('Invalid username or password');
+      } else {
+        const match = await bcrypt.compare(sanitizedPassword, result.rows[0].password);
+  
+        if (match) {
+          res.redirect('/success');
         } else {
-            const match = await bcrypt.compare(password, result.rows[0].password);
-
-            if (match) {
-                res.redirect('/success');
-            } else {
-                res.status(401).send('Invalid username or password');
-            }
+          res.status(401).send('Invalid username or password');
         }
+      }
     } catch (err) {
-        console.error(err);
-        
-        res.status(500).send('Internal server error');
+      console.error(err);
+      res.status(500).send('Internal server error');
     }
-});
+  });
+  
 
 // Handling GET request to the /signup endpoint
 app.get('/signup', (req, res) => {
@@ -125,12 +133,17 @@ app.post('/signup', async (req, res) => {
     if (password.length < 6) {
         res.status(400).send('Password must be at least 6 characters');
         return;
-      }
+    }
+
+    // Sanitize user input to prevent XSS attacks
+    const sanitizeHtml = require('sanitize-html');
+    const sanitizedUsername = sanitizeHtml(username);
+    const sanitizedPassword = sanitizeHtml(password);
 
     // Check if user already exists
     const userExistsQuery = {
         text: 'SELECT * FROM users WHERE username = $1',
-        values: [username],
+        values: [sanitizedUsername],
     };
 
     const userExists = await pool.query(userExistsQuery);
@@ -143,7 +156,7 @@ app.post('/signup', async (req, res) => {
     // Insert new user
     const insertQuery = {
         text: 'INSERT INTO users (username, password) VALUES ($1, $2)',
-        values: [username, await bcrypt.hash(password, 10)],
+        values: [sanitizedUsername, await bcrypt.hash(sanitizedPassword, 10)],
     };
 
     try {
@@ -153,7 +166,8 @@ app.post('/signup', async (req, res) => {
         console.error(err);
         res.status(500).send('Internal server error');
     }
-}); 
+});
+
 
 app.listen(port, () => {
     console.log(`Server is listening on port ${port}.`);
