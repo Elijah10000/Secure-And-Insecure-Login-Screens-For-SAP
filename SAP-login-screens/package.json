@@ -28,7 +28,7 @@
     "https": "^1.0.0",
     "mysql": "^2.18.1",
     "pg": "^8.10.0",
-    "sanitize-html": "^2.10.0"
+    "sanitize-html": "^2.12.1"
   },
   "devDependencies": {
     "eslint": "^8.37.0"
